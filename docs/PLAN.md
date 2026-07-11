@@ -7,6 +7,20 @@
 
 ---
 
+## 0. PRODUCT HOME (2026-07-11)
+
+**Hermes product platform** now lives in a dedicated repository:
+
+- **https://github.com/kishoreHQ/Hermes-Agent-OS** — kernel, plugin framework, Mission Control product home, ADRs  
+- **This repository (AESP-RI)** remains protocol compliance + transitional Agent OS monorepo (gates already shipped)  
+- Protocol standard: **AESP** · Examples: **AESP-Examples** · Product: **Hermes-Agent-OS**  
+
+New platform architecture and multi-year product work should target Hermes-Agent-OS (see that repo’s `docs/PLAN.md` phases H0–H5).  
+Phase 8–9 execution prompts in §4–5 of *this* plan still apply to the AESP-RI monorepo until Hermes reaches Host API / UI parity.
+
+
+---
+
 ## 1. PROGRAM STATE (as of commit 311d7ba; monorepo continues past this tip)
 
 **Shipped and gated:**
