@@ -31,7 +31,7 @@ spec:
 }
 
 func TestSpecMapping(t *testing.T) {
-	if SpecMapping().Status != "stubbed" {
+	if SpecMapping().Status != "implemented" {
 		t.Fatal("status")
 	}
 }
