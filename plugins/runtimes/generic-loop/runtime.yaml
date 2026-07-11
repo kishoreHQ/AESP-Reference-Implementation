@@ -1,0 +1,10 @@
+apiVersion: aesp.runtime/v1
+kind: RuntimePlugin
+metadata:
+  id: runtime.generic-loop
+  version: 1.0.0
+spec:
+  capabilitiesIn: [tools, streaming, reasoning, coding]
+  capabilitiesOut: [coding, planning]
+  sandbox: process
+  entrypoint: ./runtime
