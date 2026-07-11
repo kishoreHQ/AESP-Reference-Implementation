@@ -62,6 +62,8 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	case "config":
+		cmdConfig()
 	case "help", "-h", "--help":
 		printHelp()
 	default:
@@ -75,6 +77,7 @@ func printHelp() {
 	fmt.Print(`aespd — AESP Reference Agent OS
 
 Commands:
+  config                       Show memory / session / provider wiring
   demo                         Run built-in single-agent demo
   run <mission.yaml>           Execute a mission file
   run-example <name>           Run bundled example (e.g. 01-single-agent)
@@ -84,11 +87,73 @@ Commands:
   help                         Show this help
 
 Profiles: P1 via serve, P2 local CLI, P3 embed pkg/agentos.System
+
+Env:
+  AESP_WORKSPACE   Workspace root for file tools (default: temp or .aesp-workspace)
 `)
 }
 
+func workspace() string {
+	if w := os.Getenv("AESP_WORKSPACE"); w != "" {
+		return w
+	}
+	return filepath.Join(os.TempDir(), "aesp-workspace")
+}
+
+func cmdConfig() {
+	ws := workspace()
+	sys := agentos.New(agentos.Config{Workspace: ws, AutoApprove: false})
+	fmt.Println("AESP Agent OS — runtime configuration")
+	fmt.Println("=====================================")
+	fmt.Printf("profile:           local-first (P2 defaults; serve = P1 HTTP)\n")
+	fmt.Printf("workspace:         %s\n", ws)
+	fmt.Printf("workspace env:     AESP_WORKSPACE=%s\n", os.Getenv("AESP_WORKSPACE"))
+	fmt.Println()
+	fmt.Println("memory (INV-04 / AESP-0004)")
+	fmt.Println("  backend:        in-process pkg/memory.Memory")
+	fmt.Println("  scopes:         working | session | semantic")
+	fmt.Println("  trust labels:   system, verified, agent, retrieved, untrusted, poison-suspect")
+	fmt.Println("  write rule:     trust label REQUIRED on every write")
+	fmt.Println("  tools:          memory.write, memory.read")
+	fmt.Println()
+	fmt.Println("knowledge (AESP-0006)")
+	fmt.Println("  backend:        in-process pkg/knowledge.Graph")
+	fmt.Println("  tools:          kg.upsert")
+	fmt.Println()
+	fmt.Println("session / mission (AESP-0001, 0005, INV-10)")
+	fmt.Println("  admission:      requiredCapabilities non-empty (INV-03)")
+	fmt.Println("  host API:       pkg/host.Interface via pkg/kernel")
+	fmt.Println("  journal:        pkg/eventbus + pkg/replay")
+	fmt.Println("  execution tree: agents, artifacts, costs, timeline, failures")
+	fmt.Println("  hitl timeout:   expire WITHOUT auto-approve (AESP-0014)")
+	fmt.Println()
+	fmt.Println("providers (INV-01) — abstract plugins only")
+	for _, p := range sys.Providers.List() {
+		d, err := p.Describe(context.Background())
+		if err != nil {
+			continue
+		}
+		fmt.Printf("  %-24s local=%v priority=%d caps=%v\n", d.ID, d.Local, d.Priority, d.Capabilities)
+	}
+	fmt.Println()
+	fmt.Println("runtimes (INV-01 / INV-09)")
+	for _, r := range sys.Runtimes.List() {
+		d, err := r.Describe(context.Background())
+		if err != nil {
+			continue
+		}
+		fmt.Printf("  %-24s sandbox=%s capsIn=%v\n", d.ID, d.Sandbox, d.CapabilitiesIn)
+	}
+	fmt.Println()
+	fmt.Println("routing (INV-03): capability-based + health failover (never model-name)")
+	fmt.Println("credentials (INV-07): broker handles; raw secrets not logged")
+	fmt.Println("mcp/a2a:          pkg/mcp + pkg/a2a (fixtures under conformance/fixtures/)")
+	fmt.Println()
+	fmt.Println("see also: config/default.yaml  make show-memory  make show-session")
+}
+
 func cmdDemo() error {
-	sys := agentos.New(agentos.Config{AutoApprove: true, Workspace: filepath.Join(os.TempDir(), "aesp-demo")})
+	sys := agentos.New(agentos.Config{AutoApprove: true, Workspace: workspace()})
 	res, err := sys.RunMission(context.Background(), types.Mission{
 		ID:              "wu_demo",
 		Tenant:          "local",
@@ -124,7 +189,7 @@ func cmdRun(path string) error {
 	if strings.Contains(base, "rollback") {
 		m.Labels["scenario"] = "rollback"
 	}
-	sys := agentos.New(agentos.Config{AutoApprove: true, Workspace: filepath.Join(os.TempDir(), "aesp-run")})
+	sys := agentos.New(agentos.Config{AutoApprove: true, Workspace: workspace()})
 	res, err := sys.RunMission(context.Background(), m)
 	if err != nil {
 		return err
@@ -176,7 +241,7 @@ func findExample(name string) (string, error) {
 }
 
 func cmdServe(addr string) error {
-	sys := agentos.New(agentos.Config{AutoApprove: false, Workspace: filepath.Join(os.TempDir(), "aesp-serve")})
+	sys := agentos.New(agentos.Config{AutoApprove: false, Workspace: workspace()})
 	srv := httpapi.New(sys)
 	fmt.Printf("AESP Agent OS Host Interface listening on %s\n", addr)
 	fmt.Println("POST /v1/missions  GET /v1/missions/{id}/tree  GET /health  GET /v1/conformance")

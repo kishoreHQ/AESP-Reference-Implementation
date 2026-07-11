@@ -1,0 +1,5 @@
+
+# Local Agent OS workspace
+.aesp-workspace/
+bin/
+coverage/

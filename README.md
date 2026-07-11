@@ -23,16 +23,37 @@ Provider plugins · Runtime plugins · Tool layer (MCP-aligned) · A2A peers
 | Conformance catalog | **28/28 implemented** |
 | Profiles | P1 HTTP serve · P2 CLI local · P3 embed `agentos.System` |
 
-## Quick start
+## Quick start (Makefile)
+
+```bash
+make help              # all targets
+make show-config       # how memory, session, providers are wired
+make show-memory       # memory scopes + trust labels
+make show-session      # session / event lifecycle
+make test              # unit tests
+make test-memory       # memory + trust policy tests
+make test-session      # mission/session/journal tests
+make demo-memory       # run memory-update example
+make demo-session      # run single-agent (session events)
+make demo-failover     # provider failover
+make examples          # all 10 examples
+make smoke             # test + demo + examples + conformance
+make serve             # HTTP Host Interface :8080
+```
+
+### Or via Go directly
 
 ```bash
 go test ./...
+go run ./cmd/aespd config
 go run ./cmd/aespd demo
 go run ./cmd/aespd run-all-examples
 go run ./cmd/aespd conformance
 go run ./cmd/aespd run examples/01-single-agent/mission.yaml
-go run ./cmd/aespd serve :8080
+AESP_WORKSPACE=./.aesp-workspace go run ./cmd/aespd serve :8080
 ```
+
+Config docs: [`config/default.yaml`](./config/default.yaml) · [`config/README.md`](./config/README.md)
 
 ### HTTP Host Interface (P1/P3)
 

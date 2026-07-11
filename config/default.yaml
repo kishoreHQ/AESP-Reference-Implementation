@@ -1,0 +1,139 @@
+# AESP Agent OS — default configuration (P2 local-first profile)
+# This file documents how the reference assembly is wired.
+# The kernel loads these defaults in code (pkg/agentos); env overrides apply at CLI.
+#
+# Override workspace:
+#   AESP_WORKSPACE=/path make demo
+#   make demo WORKSPACE=/path
+
+apiVersion: aesp.config/v1
+kind: AgentOSConfig
+metadata:
+  name: default
+  profile: local-first   # local-first | platform | embedded
+
+spec:
+  # ── Host / workspace ──────────────────────────────────────────────
+  workspace:
+    # File tools (workspace.read/write) root. Also used for local artifacts.
+    root: ${AESP_WORKSPACE:-.aesp-workspace}
+    # Content-addressed artifacts live in-memory by default (pkg/artifact).
+    artifactBackend: memory
+
+  # ── Unified memory (INV-04 / AESP-0004) ────────────────────────────
+  memory:
+    backend: memory          # in-process; future: sqlite | postgres
+    scopes:
+      - working              # short-horizon task state
+      - session              # mission continuity (default write scope)
+      - semantic             # retrieval-oriented
+    # Every write MUST set a trust label (fail closed if missing).
+    trustLabels:
+      - system               # kernel-authored
+      - verified             # validated / human / test
+      - agent                # agent working notes
+      - retrieved            # RAG/web — no privileged auth by default
+      - untrusted            # raw tool/MCP — NEVER authorizes privilege
+      - poison-suspect       # quarantined
+    tools:
+      - memory.write
+      - memory.read
+
+  # ── Knowledge graph (AESP-0006) ────────────────────────────────────
+  knowledge:
+    backend: memory
+    tools:
+      - kg.upsert
+
+  # ── Session / mission (AESP-0001, 0005, INV-10) ────────────────────
+  session:
+    # Mission admission requires non-empty requiredCapabilities (INV-03).
+    requireCapabilities: true
+    # Correlation keys on every event:
+    correlation:
+      - workUnitId
+      - sessionId
+      - traceId
+      - tenant
+    # Default budget if mission YAML omits budget
+    defaultBudget:
+      maxSteps: 20
+      maxTokens: 50000
+      maxWallSec: 600
+    events:
+      - aesp.control.mission.accepted
+      - aesp.session.opened
+      - aesp.control.route.selected
+      - aesp.provider.completed
+      - aesp.runtime.completed
+      - aesp.memory.write
+      - aesp.hitl.approval.requested
+      - aesp.hitl.approval.resolved
+
+  # ── Context envelope (INV-05) ──────────────────────────────────────
+  contextEnvelope:
+    fields:
+      - workspace
+      - mission
+      - memory          # selected items + trust labels
+      - knowledge
+      - artifacts
+      - policies
+      - credentials     # handles only, never raw secrets
+      - tools
+      - budget
+      - security
+      - prompt          # one field — not the whole context
+      - correlation
+
+  # ── Providers & runtimes (INV-01, INV-03) ──────────────────────────
+  providers:
+    # Abstract plugins only — zero vendor names in kernel.
+    - id: provider.mock-remote
+      priority: 100
+      local: false
+      capabilities: [coding, tools, streaming, vision, reasoning, planning]
+    - id: provider.mock-local
+      priority: 10
+      local: true
+      capabilities: [coding, tools, streaming, local, reasoning, planning]
+  runtimes:
+    - id: runtime.generic-loop
+      manifest: plugins/runtimes/generic-loop/runtime.yaml
+      capabilitiesIn: [tools, streaming, reasoning, coding]
+  routing:
+    mode: capability          # NEVER model-name routing
+    failover: true            # mark unhealthy + re-route
+
+  # ── Tools (INV-06) ────────────────────────────────────────────────
+  tools:
+    builtin:
+      - echo
+      - memory.write
+      - memory.read
+      - kg.upsert
+      - workspace.write
+      - workspace.read
+      - flaky.step           # rollback/retry demos
+    mcp:
+      enabled: true
+      fixtures: conformance/fixtures/mcp/
+
+  # ── Security / HITL ───────────────────────────────────────────────
+  policy:
+    untrustedCannotAuthorizePrivilege: true
+    destructiveRequiresApproval: true
+  hitl:
+    autoApproveOnTimeout: false   # MUST remain false (AESP-0014)
+  credentials:
+    broker: memory                # short-lived handles (INV-07)
+
+  # ── Profiles (INV-11) ─────────────────────────────────────────────
+  profiles:
+    local-first:
+      zeroCloudCredentials: true
+      providers: [provider.mock-local]
+    platform:
+      hostInterface: http         # aespd serve
+    embedded:
+      hostInterface: in-process   # pkg/agentos.System + pkg/host.Interface
