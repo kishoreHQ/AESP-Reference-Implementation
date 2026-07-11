@@ -1,0 +1,11 @@
+apiVersion: aesp.runtime/v1
+kind: RuntimePlugin
+metadata:
+  id: runtime.aider
+  version: 1.0.0
+spec:
+  capabilitiesIn: [tools, coding, streaming]
+  capabilitiesOut: [coding, planning]
+  sandbox: process
+  entrypoint: ./adapter
+  unsandboxed: false

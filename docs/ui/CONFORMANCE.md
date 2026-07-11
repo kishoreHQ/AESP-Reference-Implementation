@@ -26,3 +26,22 @@
 | UI-TST-01 | Contract mocks | **partial** | MSW parity; CI diff deferred |
 
 Unresolved / deferred: formal axe CI, Playwright visual golden suite, full 100k log soak.
+
+## Feature pack — Connections & Command Deck
+
+| ID | Result |
+|----|--------|
+| K1 Connection probe | **pass** |
+| K2 Runtime adapters | **pass** (generic-pty + CLI adapters) |
+| K3 Sessions | **pass** |
+| K4 Task board | **pass** |
+| K5 Routines | **pass** |
+| K6 Goals/journal | **pass** |
+| K7 Analytics | **pass** |
+| UI Connections wizard | **pass** |
+| UI Agent rail | **pass** |
+| UI Live session | **pass** |
+| UI Control room | **pass** |
+| UI Board | **pass** |
+| UI Routines | **pass** |
+| UI Brain rail | **pass** |

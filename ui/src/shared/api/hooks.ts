@@ -163,3 +163,133 @@ export function useSavePolicy() {
 
 // silence unused Envelope import for some TS configs
 export type { Envelope }
+
+
+// ——— Feature pack: connections & command deck ———
+
+export function useProbe() {
+  return useQuery({
+    queryKey: ['connections', 'probe'],
+    queryFn: () => apiGet<any[]>('/v1/connections/probe'),
+  })
+}
+
+export function useConnections() {
+  return useQuery({
+    queryKey: ['connections'],
+    queryFn: () => apiGet<any[]>('/v1/connections'),
+    refetchInterval: 4000,
+  })
+}
+
+export function useRegisterConnection() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: any) => apiPost<any>('/v1/connections', body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['connections'] })
+      qc.invalidateQueries({ queryKey: ['registry'] })
+    },
+  })
+}
+
+export function useSessions() {
+  return useQuery({
+    queryKey: ['sessions'],
+    queryFn: () => apiGet<any[]>('/v1/sessions'),
+    refetchInterval: 2000,
+  })
+}
+
+export function useCreateSession() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: any) => apiPost<any>('/v1/sessions', body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['sessions'] }),
+  })
+}
+
+export function useSessionMessage() {
+  return useMutation({
+    mutationFn: (p: { id: string; text: string }) =>
+      apiPost<any>(`/v1/sessions/${p.id}/message`, { text: p.text }),
+  })
+}
+
+export function useStopSession() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => apiPost<any>(`/v1/sessions/${id}/stop`, {}),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['sessions'] }),
+  })
+}
+
+export function useBoards() {
+  return useQuery({ queryKey: ['boards'], queryFn: () => apiGet<any[]>('/v1/boards') })
+}
+
+export function useTasks(board = 'board_default') {
+  return useQuery({
+    queryKey: ['tasks', board],
+    queryFn: () => apiGet<any[]>('/v1/tasks', { board }),
+    refetchInterval: 2000,
+  })
+}
+
+export function useMoveTask() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (p: { id: string; column: string; assignee?: string }) =>
+      apiPost<any>(`/v1/tasks/${p.id}`, { column: p.column, assignee: p.assignee }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+  })
+}
+
+export function useClaimTask() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (p: { agentId: string }) =>
+      apiPost<any>('/v1/tasks/_/claim', { agentId: p.agentId }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+  })
+}
+
+export function useRoutines() {
+  return useQuery({
+    queryKey: ['routines'],
+    queryFn: () => apiGet<any[]>('/v1/routines'),
+    refetchInterval: 5000,
+  })
+}
+
+export function useCreateRoutine() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: any) => apiPost<any>('/v1/routines', body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['routines'] }),
+  })
+}
+
+export function useGoals() {
+  return useQuery({ queryKey: ['goals'], queryFn: () => apiGet<any[]>('/v1/goals') })
+}
+
+export function useJournal() {
+  return useQuery({ queryKey: ['journal'], queryFn: () => apiGet<any[]>('/v1/journal') })
+}
+
+export function useAddJournal() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (text: string) => apiPost<any>('/v1/journal', { text }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['journal'] }),
+  })
+}
+
+export function useAgentAnalytics(id: string) {
+  return useQuery({
+    queryKey: ['analytics', id],
+    queryFn: () => apiGet<any>(`/v1/analytics/agents/${id}`),
+    enabled: !!id,
+  })
+}

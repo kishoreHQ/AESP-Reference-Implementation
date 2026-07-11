@@ -11,7 +11,13 @@ import (
 
 	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/a2a"
 	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/agentregistry"
+	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/analytics"
 	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/approval"
+	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/board"
+	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/connections"
+	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/goals"
+	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/routines"
+	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/sessions"
 	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/artifact"
 	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/contextenv"
 	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/credentials"
@@ -77,6 +83,13 @@ type System struct {
 	Agents     *agentregistry.Registry
 
 	Remote *mockremote.Provider
+
+	Connections *connections.Service
+	Sessions    *sessions.Service
+	Board       *board.Service
+	Routines    *routines.Service
+	Goals       *goals.Service
+	Analytics   *analytics.Service
 }
 
 // MissionResult is the outcome of a full agent loop.
@@ -149,6 +162,13 @@ func New(cfg Config) *System {
 
 	// Seed demo credentials (INV-07) — never log the raw value.
 	s.Creds.PutSecret("provider.default", "local-demo-secret")
+
+	s.Connections = connections.New(s.Creds, pr)
+	s.Sessions = sessions.New(bus, mem)
+	s.Board = board.New()
+	s.Routines = routines.New()
+	s.Goals = goals.New(mem)
+	s.Analytics = analytics.New(bus, s.Sessions)
 
 	return s
 }

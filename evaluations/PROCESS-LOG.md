@@ -90,3 +90,9 @@ Per master execution prompt §8. Append-only.
 - **UI-PHASE 1–5:** contract docs, EventBridge, richer host API data (approvals/artifacts/evals/tree/logs), mountMissionControl, gates UI-GATE-1…5, CONFORMANCE.md
 - **Satisfies:** UI-SPEC production scope for monorepo delivery
 - **Deferred:** Playwright e2e suite, axe CI gate, Lighthouse automation
+
+## 2026-07-11 — FEATURE PACK Connections & Command Deck
+
+- **Produced:** K1–K7 packages, HTTP deck routes, runtime.yaml plugins, UI surfaces (connect, rail, session, control room, board, routines, brain), GATE-6/7
+- **Satisfies:** INV-01/02/04/05/07/09/10; feature pack doc
+- **Note:** Named CLI adapters use PATH probe + sandboxed echo handshake; full interactive agent loops depend on local CLI availability. Generic PTY proves stream pipeline first.

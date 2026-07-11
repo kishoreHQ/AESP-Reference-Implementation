@@ -79,3 +79,27 @@ Kernel bus types today use `aesp.*` (e.g. `aesp.control.mission.accepted`). CONT
 | Tree/logs/artifacts | Upgrade stubs to use real mission results + journal |
 | Approvals seed | Create HITL tasks on approval-gated missions |
 | UI polish | Production states, node actions, mock parity ticker |
+
+## Feature pack delta (post UI-PHASE 6–7)
+
+| Endpoint | State |
+|----------|-------|
+| POST/GET /api/v1/connections/probe | **served** |
+| POST/GET /api/v1/connections | **served** |
+| POST/GET /api/v1/sessions | **served** |
+| POST /api/v1/sessions/:id/message\|stop | **served** |
+| GET /api/v1/boards | **served** |
+| GET/POST /api/v1/tasks | **served** |
+| POST /api/v1/tasks/:id/claim | **served** |
+| GET/POST /api/v1/routines | **served** |
+| GET /api/v1/goals, journal | **served** |
+| GET /api/v1/analytics/agents/:id | **served** |
+
+| UI route | State |
+|----------|-------|
+| /connect | **complete** |
+| /agents/:id | **complete** |
+| /sessions/* | **complete** |
+| /board | **complete** |
+| /routines | **complete** |
+| Brain rail (home) | **complete** |

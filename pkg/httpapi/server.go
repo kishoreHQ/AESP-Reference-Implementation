@@ -61,6 +61,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/v1/policies/", s.apiPolicySub)
 	mux.HandleFunc("/api/v1/credentials", s.apiCredentials)
 	mux.HandleFunc("/api/v1/events", s.apiEventsWS)
+	s.registerDeckRoutes(mux)
 
 	// P1: serve Mission Control SPA when ui/dist exists (GAP-UI-002)
 	if dist := uiDistPath(); dist != "" {

@@ -10,6 +10,11 @@ import { ArtifactsPage } from '@/features/artifacts/ArtifactsPage'
 import { EvaluationsPage } from '@/features/evaluations/EvaluationsPage'
 import { ReplayPage } from '@/features/replay/ReplayPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
+import { ConnectionsPage } from '@/features/connections/ConnectionsPage'
+import { LiveSessionPage } from '@/features/agents/LiveSessionPage'
+import { ControlRoomPage } from '@/features/agents/ControlRoomPage'
+import { BoardPage } from '@/features/board/BoardPage'
+import { RoutinesPage } from '@/features/routines/RoutinesPage'
 
 export default function App() {
   return (
@@ -20,6 +25,12 @@ export default function App() {
         <Route path="missions/:id" element={<MissionDetailPage />} />
         <Route path="approvals" element={<ApprovalsPage />} />
         <Route path="fleet" element={<FleetPage />} />
+        <Route path="connect" element={<ConnectionsPage />} />
+        <Route path="agents/:id" element={<ControlRoomPage />} />
+        <Route path="sessions/new" element={<LiveSessionPage />} />
+        <Route path="sessions/:id" element={<LiveSessionPage />} />
+        <Route path="board" element={<BoardPage />} />
+        <Route path="routines" element={<RoutinesPage />} />
         <Route path="memory" element={<MemoryPage />} />
         <Route path="artifacts" element={<ArtifactsPage />} />
         <Route path="evaluations" element={<EvaluationsPage />} />

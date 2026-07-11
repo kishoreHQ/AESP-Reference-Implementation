@@ -9,6 +9,8 @@ import { EventBridge } from '@/shared/events/EventBridge'
 import { useQueryClient } from '@tanstack/react-query'
 import { cn } from '@/shared/lib/cn'
 import { StatusDot } from '@/shared/ui/StatusDot'
+import { AgentRail } from '@/features/agents/AgentRail'
+import { BrainRail } from '@/features/brain/BrainRail'
 import {
   IconApprovals,
   IconArtifacts,
@@ -28,12 +30,15 @@ const sections: { label: string; items: { to: string; label: string; icon: typeo
       { to: '/', label: 'Dashboard', icon: IconLogo, end: true },
       { to: '/missions', label: 'Missions', icon: IconMissions },
       { to: '/approvals', label: 'Approvals', icon: IconApprovals },
+      { to: '/board', label: 'Board', icon: IconMissions },
+      { to: '/routines', label: 'Routines', icon: IconEval },
     ],
   },
   {
     label: 'Orchestration',
     items: [
       { to: '/fleet', label: 'Fleet', icon: IconFleet },
+      { to: '/connect', label: 'Connect', icon: IconFleet },
       { to: '/evaluations', label: 'Evaluations', icon: IconEval },
     ],
   },
@@ -202,9 +207,19 @@ export function AppShell() {
           </div>
         </nav>
 
+        <div className="hidden w-[200px] shrink-0 xl:block">
+          <AgentRail />
+        </div>
+
         <main className="min-w-0 flex-1 overflow-auto">
           <Outlet />
         </main>
+
+        {loc.pathname === '/' && (
+          <div className="hidden w-[280px] shrink-0 2xl:block">
+            <BrainRail />
+          </div>
+        )}
 
         {(showSpine || spineOpen) && (
           <div
