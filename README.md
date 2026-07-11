@@ -94,6 +94,11 @@ Config docs: [`config/default.yaml`](./config/default.yaml)
 
 ---
 
+## Program plan
+
+**What remains / what “done” means:** [`docs/PLAN.md`](./docs/PLAN.md)  
+**Industry ADTs:** [`docs/LANDSCAPE.md`](./docs/LANDSCAPE.md)
+
 ## Status
 
 | Area | State |

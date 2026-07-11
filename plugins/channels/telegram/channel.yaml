@@ -1,0 +1,8 @@
+apiVersion: aesp.channel/v1
+kind: ChannelPlugin
+metadata:
+  id: channel.telegram
+  version: 0.1.0
+spec:
+  capabilities: [hitl-notify, hitl-decision]
+  # Implementation: Phase 8 B1 — zero vendor names in kernel; adapter lives here.

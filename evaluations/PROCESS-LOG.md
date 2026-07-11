@@ -96,3 +96,12 @@ Per master execution prompt §8. Append-only.
 - **Produced:** K1–K7 packages, HTTP deck routes, runtime.yaml plugins, UI surfaces (connect, rail, session, control room, board, routines, brain), GATE-6/7
 - **Satisfies:** INV-01/02/04/05/07/09/10; feature pack doc
 - **Note:** Named CLI adapters use PATH probe + sandboxed echo handshake; full interactive agent loops depend on local CLI availability. Generic PTY proves stream pipeline first.
+
+## 2026-07-11 — FINAL PROGRAM PLAN committed
+
+- **Produced:** docs/PLAN.md (source of truth), docs/LANDSCAPE.md (ADT-01…12),
+  ADR-0004 placeholder for sandbox-agent spike, Phase 8 foundation packages
+  (routingtier, agentmode, heartbeat, channels) as **stubbed** scaffolds,
+  GAP-ADT-01…12 open, UI-GATE-8/9 NOT STARTED.
+- **Satisfies:** program sequencing; does not claim GATE-8/9
+- **Next:** HC-1 human smoke → Phase 8 A1 spike (ADR-0004)
