@@ -13,6 +13,7 @@ class EventBridgeImpl {
   private timer: ReturnType<typeof setTimeout> | null = null
   private mockTimer: ReturnType<typeof setInterval> | null = null
   private connected = false
+  private sse: EventSource | null = null
 
   get lastSeq() {
     return this.seq
@@ -37,13 +38,15 @@ class EventBridgeImpl {
       this.startMockStream()
       return
     }
+    this.connectWS(missionId)
+  }
+
+  private connectWS(missionId?: string) {
     const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    const base = profile.baseUrl.replace(/^http/, 'ws').replace(/\/$/, '')
-    // Prefer same-origin proxy path
-    const url =
-      base.startsWith('ws') && !base.includes('://')
-        ? `${proto}://${window.location.host}${base}/v1/events?since=${this.seq}${missionId ? `&mission=${missionId}` : ''}`
-        : `${proto}://${window.location.host}/api/v1/events?since=${this.seq}${missionId ? `&mission=${missionId}` : ''}`
+    const qs = new URLSearchParams()
+    qs.set('since', String(this.seq))
+    if (missionId) qs.set('mission', missionId)
+    const url = `${proto}://${window.location.host}/api/v1/events?${qs.toString()}`
     try {
       this.ws = new WebSocket(url)
       this.ws.onopen = () => {
@@ -77,19 +80,28 @@ class EventBridgeImpl {
     this.reconnectMs = Math.min(this.reconnectMs * 1.6, 8000)
   }
 
+  /** Mock stream simulates live mission progression for demos/tests. */
   private startMockStream() {
     this.connected = true
     if (this.mockTimer) clearInterval(this.mockTimer)
+    const types = [
+      'mission.updated',
+      'node.updated',
+      'log.append',
+      'artifact.created',
+      'memory.written',
+    ] as const
     this.mockTimer = setInterval(() => {
       this.seq += 1
+      const type = types[this.seq % types.length]
       this.dispatch({
         seq: this.seq,
-        type: 'mission.updated',
+        type,
         ts: new Date().toISOString(),
         missionId: this.missionFilter ?? 'mis_demo_running',
-        data: { tick: this.seq },
+        data: { tick: this.seq, mock: true },
       })
-    }, 4000)
+    }, 2500)
   }
 
   private dispatch(ev: HostEvent) {
@@ -102,6 +114,8 @@ class EventBridgeImpl {
     this.mockTimer = null
     this.ws?.close()
     this.ws = null
+    this.sse?.close()
+    this.sse = null
   }
 }
 

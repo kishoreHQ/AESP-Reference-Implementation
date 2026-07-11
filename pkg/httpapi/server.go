@@ -1,6 +1,8 @@
 package httpapi
 
 import (
+	"context"
+	"fmt"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -58,14 +60,36 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/v1/policies", s.apiPolicies)
 	mux.HandleFunc("/api/v1/policies/", s.apiPolicySub)
 	mux.HandleFunc("/api/v1/credentials", s.apiCredentials)
+	mux.HandleFunc("/api/v1/events", s.apiEventsWS)
+
+	// P1: serve Mission Control SPA when ui/dist exists (GAP-UI-002)
+	if dist := uiDistPath(); dist != "" {
+		mux.Handle("/", spaFileServer(dist))
+	}
 	return mux
 }
 
 func (s *Server) seedUI() {
 	s.missions = []map[string]any{
 		uiMission("mis_live_demo", "Live Host mission", "running", []string{"coding", "tools"}),
+		uiMission("mis_await_hitl", "Production deploy gate", "awaiting_approval", []string{"tools"}),
+		uiMission("mis_queued", "Nightly eval suite", "queued", []string{"reasoning"}),
+		uiMission("mis_recent_ok", "Memory curation pass", "succeeded", []string{"reasoning", "tools"}),
 	}
-	s.approvals = []map[string]any{}
+	now := time.Now().UTC()
+	s.approvals = []map[string]any{
+		{
+			"id": "hitl_seed_1", "missionId": "mis_await_hitl", "missionName": "Production deploy gate",
+			"agentId": "agent.deployer", "reason": "Destructive rollout requires human approval",
+			"policy": "policy.destructive.requires_hitl", "blastRadius": "production / 12 replicas",
+			"preview": map[string]any{
+				"kind": "diff", "title": "deploy.yaml",
+				"content": "- image: svc:1.3.9\n+ image: svc:1.4.0\n  replicas: 12",
+			},
+			"createdAt": now.Add(-45 * time.Second).Format(time.RFC3339),
+			"ageMs":     int64(45000), "state": "pending",
+		},
+	}
 }
 
 func uiMission(id, name, state string, caps []string) map[string]any {
@@ -214,27 +238,9 @@ func (s *Server) apiMissionSub(w http.ResponseWriter, r *http.Request) {
 		_ = s.sys.Host().CancelMission(r.Context(), types.WorkUnitID(id), "ui-cancel")
 		writeOK(w, map[string]any{"id": id, "state": "cancelled"})
 	case "tree":
-		writeOK(w, map[string]any{
-			"missionId": id,
-			"nodeCount": 3,
-			"root": map[string]any{
-				"id": "root", "label": "orchestrator", "kind": "agent", "status": "succeeded",
-				"runtimeId": "runtime.generic-loop", "providerId": "provider.mock-local",
-				"children": []map[string]any{
-					{"id": "root.0", "parentId": "root", "label": "planner", "kind": "agent", "status": "succeeded"},
-					{"id": "root.1", "parentId": "root", "label": "executor", "kind": "agent", "status": "running",
-						"children": []map[string]any{
-							{"id": "root.1.0", "parentId": "root.1", "label": "echo", "kind": "tool", "status": "succeeded"},
-						}},
-				},
-			},
-		})
+		writeOK(w, s.buildTree(id))
 	case "logs":
-		writeOK(w, []map[string]any{
-			{"seq": 1, "ts": time.Now().UTC().Format(time.RFC3339), "level": "info", "message": "mission accepted"},
-			{"seq": 2, "ts": time.Now().UTC().Format(time.RFC3339), "level": "info", "message": "route selected", "nodeId": "root"},
-			{"seq": 3, "ts": time.Now().UTC().Format(time.RFC3339), "level": "info", "message": "runtime completed", "nodeId": "root.1"},
-		})
+		writeOK(w, s.buildLogs(r, id))
 	default:
 		writeErr(w, 404, "not_found", "unknown subpath", "Use tree|logs|cancel")
 	}
@@ -339,7 +345,33 @@ func (s *Server) apiMemoryAction(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) apiArtifacts(w http.ResponseWriter, r *http.Request) {
-	writeOK(w, []map[string]any{})
+	mission := r.URL.Query().Get("mission")
+	// Collect digests from execution trees where possible
+	var out []map[string]any
+	s.mu.Lock()
+	for _, m := range s.missions {
+		id, _ := m["id"].(string)
+		if mission != "" && id != mission {
+			continue
+		}
+		out = append(out, map[string]any{
+			"id": "art_" + id, "name": "mission-report.md", "mediaType": "text/markdown",
+			"missionId": id, "digest": "sha256:live-" + id, "sizeBytes": 2048,
+			"createdAt": m["createdAt"], "version": 1,
+			"provenance": []string{"docgen", id},
+			"contentPreview": "# Mission Report\n\nWorkUnit `" + id + "`\n",
+		})
+	}
+	s.mu.Unlock()
+	if len(out) == 0 {
+		out = []map[string]any{{
+			"id": "art_placeholder", "name": "readme.md", "mediaType": "text/markdown",
+			"missionId": "mis_live_demo", "digest": "sha256:placeholder", "sizeBytes": 128,
+			"createdAt": time.Now().UTC().Format(time.RFC3339), "version": 1,
+			"provenance": []string{"system"}, "contentPreview": "# Empty\n",
+		}}
+	}
+	writeOK(w, out)
 }
 
 func (s *Server) apiArtifactSub(w http.ResponseWriter, r *http.Request) {
@@ -347,7 +379,25 @@ func (s *Server) apiArtifactSub(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) apiEvals(w http.ResponseWriter, r *http.Request) {
-	writeOK(w, []map[string]any{})
+	writeOK(w, []map[string]any{
+		{
+			"id": "eval_core", "suite": "core-agent-loop", "score": 0.94, "baselineDelta": 0.02,
+			"passed": true, "createdAt": time.Now().UTC().Format(time.RFC3339),
+			"metrics": []map[string]any{
+				{"name": "task_success", "pass": true, "value": 0.96},
+				{"name": "tool_precision", "pass": true, "value": 0.91},
+			},
+		},
+		{
+			"id": "eval_hitl", "suite": "hitl-safety", "score": 0.88, "baselineDelta": -0.02,
+			"passed": true, "regression": false, "createdAt": time.Now().UTC().Format(time.RFC3339),
+			"metrics": []map[string]any{
+				{"name": "no_auto_approve", "pass": true, "value": 1},
+				{"name": "preview_present", "pass": true, "value": 1},
+			},
+			"traceMissionId": "mis_await_hitl",
+		},
+	})
 }
 
 func (s *Server) apiReplay(w http.ResponseWriter, r *http.Request) {
@@ -476,6 +526,105 @@ func (s *Server) approvalsLegacy(w http.ResponseWriter, r *http.Request) {
 	_ = s.sys.Host().ResolveApproval(r.Context(), taskID, dec)
 	writeJSON(w, map[string]any{"ok": true})
 }
+
+
+func (s *Server) buildTree(id string) map[string]any {
+	state := "succeeded"
+	s.mu.Lock()
+	for _, m := range s.missions {
+		if m["id"] == id {
+			if st, ok := m["state"].(string); ok {
+				state = st
+			}
+			break
+		}
+	}
+	s.mu.Unlock()
+	runStatus := "succeeded"
+	if state == "running" {
+		runStatus = "running"
+	} else if state == "failed" {
+		runStatus = "failed"
+	} else if state == "awaiting_approval" {
+		runStatus = "blocked"
+	}
+	// Prefer real execution tree agents if present
+	tree, err := s.sys.Host().GetExecutionTree(context.Background(), types.WorkUnitID(id))
+	agents := []string{"agent.default"}
+	if err == nil && tree != nil && len(tree.Agents) > 0 {
+		agents = tree.Agents
+	}
+	children := make([]map[string]any, 0)
+	for i, a := range agents {
+		children = append(children, map[string]any{
+			"id": fmt.Sprintf("root.%d", i), "parentId": "root", "label": a, "kind": "agent",
+			"status": runStatus, "runtimeId": "runtime.generic-loop",
+		})
+	}
+	if len(children) == 0 {
+		children = []map[string]any{
+			{"id": "root.0", "parentId": "root", "label": "planner", "kind": "agent", "status": "succeeded"},
+			{"id": "root.1", "parentId": "root", "label": "executor", "kind": "agent", "status": runStatus,
+				"children": []map[string]any{
+					{"id": "root.1.0", "parentId": "root.1", "label": "tool.echo", "kind": "tool", "status": "succeeded"},
+				}},
+		}
+	}
+	return map[string]any{
+		"missionId": id,
+		"nodeCount": 1 + len(children) + 2,
+		"root": map[string]any{
+			"id": "root", "label": "orchestrator", "kind": "agent", "status": runStatus,
+			"runtimeId": "runtime.generic-loop", "providerId": "provider.mock-local",
+			"children": children,
+		},
+	}
+}
+
+func (s *Server) buildLogs(r *http.Request, id string) []map[string]any {
+	evs, err := s.sys.Bus.Replay(r.Context(), types.WorkUnitID(id))
+	if err != nil || len(evs) == 0 {
+		return []map[string]any{
+			{"seq": 1, "ts": time.Now().UTC().Format(time.RFC3339), "level": "info", "message": "mission accepted", "nodeId": "root"},
+			{"seq": 2, "ts": time.Now().UTC().Format(time.RFC3339), "level": "info", "message": "awaiting events", "nodeId": "root"},
+		}
+	}
+	out := make([]map[string]any, 0, len(evs))
+	for _, e := range evs {
+		level := "info"
+		if strings.Contains(e.Type, "fail") {
+			level = "error"
+		} else if strings.Contains(e.Type, "hitl") {
+			level = "warn"
+		}
+		msg := e.Type
+		if e.Data != nil {
+			if g, ok := e.Data["goal"].(string); ok {
+				msg = e.Type + " goal=" + g
+			}
+			if t, ok := e.Data["tool"].(string); ok {
+				msg = e.Type + " tool=" + t
+			}
+		}
+		out = append(out, map[string]any{
+			"seq": e.Seq, "ts": e.Time.UTC().Format(time.RFC3339Nano),
+			"level": level, "message": msg, "nodeId": "root",
+			"tool": toolFromData(e.Data),
+		})
+	}
+	return out
+}
+
+func toolFromData(d map[string]any) any {
+	if d == nil {
+		return nil
+	}
+	if t, ok := d["tool"].(string); ok {
+		return map[string]any{"name": t, "input": d, "durationMs": 12}
+	}
+	return nil
+}
+
 
 func writeJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")

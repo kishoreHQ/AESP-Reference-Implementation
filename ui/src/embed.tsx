@@ -15,10 +15,11 @@ export interface MountOptions {
 let root: Root | null = null
 
 /**
- * P3 Embedded profile entry (UI-TEC-06).
- * mountHermesUI(el, { baseUrl, token })
+ * P3 Embedded profile entry (UI-TEC-06 / GATE-5).
+ * mountMissionControl(el, { baseUrl, token })
+ * Alias: mountHermesUI (legacy name)
  */
-export function mountHermesUI(el: HTMLElement, opts: MountOptions = {}) {
+export function mountMissionControl(el: HTMLElement, opts: MountOptions = {}) {
   window.__HERMES_UI__ = {
     baseUrl: opts.baseUrl ?? '/api',
     token: opts.token,
@@ -41,3 +42,6 @@ export function mountHermesUI(el: HTMLElement, opts: MountOptions = {}) {
     },
   }
 }
+
+/** @deprecated use mountMissionControl */
+export const mountHermesUI = mountMissionControl

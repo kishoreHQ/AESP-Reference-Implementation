@@ -159,9 +159,18 @@ export function MissionDetailPage() {
               <dd className="text-ink-0">{m.goal}</dd>
             </div>
           </dl>
-          <Link className="mt-4 inline-block text-[13px] text-accent" to={`/replay/${m.id}`}>
-            Open replay →
-          </Link>
+          <div className="mt-4 space-y-2">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-2">Node actions</div>
+            <button type="button" className="dispatch-chip w-full justify-center" onClick={() => setNodeId(nodeId || "root")}>
+              View context (focus)
+            </button>
+            <Link className="dispatch-chip w-full justify-center text-accent" to={`/replay/${m.id}`}>
+              Open replay →
+            </Link>
+            <Link className="dispatch-chip w-full justify-center" to={`/artifacts`}>
+              Artifacts library
+            </Link>
+          </div>
         </aside>
       </div>
     </div>

@@ -16,19 +16,23 @@ type Event struct {
 	TraceID    types.TraceID
 	Time       time.Time
 	Data       map[string]any
+	Seq        int64 // monotonic per bus (UI-RT-01)
 }
 
 type Bus interface {
 	Publish(ctx context.Context, e Event) error
 	Subscribe(ctx context.Context, workUnitFilter string) (<-chan Event, error)
 	Replay(ctx context.Context, workUnitID types.WorkUnitID) ([]Event, error)
+	// Since returns all events with Seq > since (global journal for WS reconnect).
+	Since(ctx context.Context, since int64) ([]Event, error)
+	Seq() int64
 }
 
 type MemoryBus struct {
-	mu     sync.Mutex
-	log    []Event
-	subs   map[string][]chan Event
-	seq    int
+	mu   sync.Mutex
+	log  []Event
+	subs map[string][]chan Event
+	seq  int64
 }
 
 func NewMemoryBus() *MemoryBus {
@@ -39,6 +43,7 @@ func (b *MemoryBus) Publish(ctx context.Context, e Event) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	b.seq++
+	e.Seq = b.seq
 	if e.ID == "" {
 		e.ID = types.EventID(time.Now().UTC().Format("20060102T150405.000000000"))
 	}
@@ -63,13 +68,12 @@ func (b *MemoryBus) Publish(ctx context.Context, e Event) error {
 }
 
 func (b *MemoryBus) Subscribe(ctx context.Context, workUnitFilter string) (<-chan Event, error) {
-	ch := make(chan Event, 64)
+	ch := make(chan Event, 128)
 	b.mu.Lock()
 	b.subs[workUnitFilter] = append(b.subs[workUnitFilter], ch)
 	b.mu.Unlock()
 	go func() {
 		<-ctx.Done()
-		// leave channel; production would unregister
 	}()
 	return ch, nil
 }
@@ -84,6 +88,24 @@ func (b *MemoryBus) Replay(ctx context.Context, workUnitID types.WorkUnitID) ([]
 		}
 	}
 	return out, nil
+}
+
+func (b *MemoryBus) Since(ctx context.Context, since int64) ([]Event, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	var out []Event
+	for _, e := range b.log {
+		if e.Seq > since {
+			out = append(out, e)
+		}
+	}
+	return out, nil
+}
+
+func (b *MemoryBus) Seq() int64 {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.seq
 }
 
 func SpecMapping() types.SpecMapping {

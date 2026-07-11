@@ -244,7 +244,8 @@ func cmdServe(addr string) error {
 	sys := agentos.New(agentos.Config{AutoApprove: false, Workspace: workspace()})
 	srv := httpapi.New(sys)
 	fmt.Printf("AESP Agent OS Host Interface listening on %s\n", addr)
-	fmt.Println("POST /v1/missions  GET /v1/missions/{id}/tree  GET /health  GET /v1/conformance")
+	fmt.Println("Host API:  /api/v1/*  (UI)  ·  legacy /v1/*  ·  WS /api/v1/events")
+	fmt.Println("If ui/dist present: SPA served at /  (P1 static)")
 	return http.ListenAndServe(addr, srv.Handler())
 }
 

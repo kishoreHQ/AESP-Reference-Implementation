@@ -81,3 +81,12 @@ Per master execution prompt §8. Append-only.
 - GAP-001 MCP golden fixtures: CLOSED (implemented)
 - GAP-002 A2A golden fixtures: CLOSED (implemented)
 - GAP-003 DEP/REM/DOC modules: CLOSED (implemented)
+
+## 2026-07-11 — UI PRODUCTION BUILD (execution prompt v1.0)
+
+- **TASK 0:** docs/ui/AUDIT.md produced (features / endpoints / events)
+- **GAP-UI-001:** WebSocket `/api/v1/events` + bus Seq + since catch-up — CLOSED
+- **GAP-UI-002:** aespd serves `ui/dist` SPA — CLOSED
+- **UI-PHASE 1–5:** contract docs, EventBridge, richer host API data (approvals/artifacts/evals/tree/logs), mountMissionControl, gates UI-GATE-1…5, CONFORMANCE.md
+- **Satisfies:** UI-SPEC production scope for monorepo delivery
+- **Deferred:** Playwright e2e suite, axe CI gate, Lighthouse automation

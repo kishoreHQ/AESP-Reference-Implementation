@@ -5,7 +5,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './app/App'
 import './index.css'
 import { detectProfile } from './profiles/detect'
-import { mountHermesUI } from './embed'
+import { mountMissionControl, mountHermesUI } from './embed'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,4 +44,4 @@ async function bootstrap() {
 // P3 embed entry is exported; default SPA bootstraps on #root
 void bootstrap()
 
-export { mountHermesUI }
+export { mountMissionControl, mountHermesUI }
