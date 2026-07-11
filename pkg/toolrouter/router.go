@@ -118,6 +118,6 @@ func SpecMapping() types.SpecMapping {
 		Module:     "pkg/toolrouter",
 		AESPSpecs:  []string{"AESP-0015", "AESP-0013", "AESP-0010"},
 		Invariants: []string{"INV-06"},
-		Status:     "stubbed",
+		Status:     "implemented",
 	}
 }

@@ -1,0 +1,103 @@
+package approval
+
+import (
+	"context"
+	"fmt"
+	"sync"
+	"time"
+
+	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/types"
+)
+
+type Status string
+
+const (
+	Pending  Status = "pending"
+	Approved Status = "approved"
+	Rejected Status = "rejected"
+	Expired  Status = "expired"
+)
+
+type Task struct {
+	ID         types.HITLTaskID
+	WorkUnitID types.WorkUnitID
+	Reason     string
+	Status     Status
+	CreatedAt  time.Time
+	ResolvedAt *time.Time
+	Actor      string
+}
+
+// Service manages HITL tasks. Timeout MUST NOT auto-approve (AESP-0014).
+type Service struct {
+	mu    sync.Mutex
+	tasks map[types.HITLTaskID]*Task
+}
+
+func New() *Service {
+	return &Service{tasks: make(map[types.HITLTaskID]*Task)}
+}
+
+func (s *Service) Request(ctx context.Context, workUnit types.WorkUnitID, reason string) (types.HITLTaskID, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	id := types.HITLTaskID(fmt.Sprintf("hitl_%d", time.Now().UnixNano()))
+	s.tasks[id] = &Task{ID: id, WorkUnitID: workUnit, Reason: reason, Status: Pending, CreatedAt: time.Now().UTC()}
+	return id, nil
+}
+
+func (s *Service) Resolve(ctx context.Context, id types.HITLTaskID, approved bool, actor string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	t, ok := s.tasks[id]
+	if !ok {
+		return fmt.Errorf("unknown task")
+	}
+	// Expired tasks may still be explicitly resolved by a host callback after
+	// re-opening; production would create a new task. For pending only by default.
+	if t.Status != Pending && t.Status != Expired {
+		return fmt.Errorf("task not resolvable: %s", t.Status)
+	}
+	now := time.Now().UTC()
+	t.ResolvedAt = &now
+	t.Actor = actor
+	if approved {
+		t.Status = Approved
+	} else {
+		t.Status = Rejected
+	}
+	return nil
+}
+
+// Expire marks pending tasks expired without approving (MUST NOT auto-approve).
+func (s *Service) Expire(ctx context.Context, id types.HITLTaskID) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	t, ok := s.tasks[id]
+	if !ok {
+		return fmt.Errorf("unknown task")
+	}
+	if t.Status == Pending {
+		t.Status = Expired
+		now := time.Now().UTC()
+		t.ResolvedAt = &now
+	}
+	return nil
+}
+
+func (s *Service) Get(id types.HITLTaskID) (*Task, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	t, ok := s.tasks[id]
+	return t, ok
+}
+
+func SpecMapping() types.SpecMapping {
+	return types.SpecMapping{
+		Module:     "pkg/approval",
+		AESPSpecs:  []string{"AESP-0014"},
+		RequirementIDs: []string{"HITL-REQ"},
+		Invariants: []string{"INV-10"},
+		Status:     "stubbed",
+	}
+}

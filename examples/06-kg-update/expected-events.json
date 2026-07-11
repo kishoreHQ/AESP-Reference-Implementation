@@ -1,0 +1,16 @@
+{
+  "events": [
+    {
+      "type": "aesp.control.mission.accepted"
+    },
+    {
+      "type": "aesp.control.route.selected"
+    },
+    {
+      "type": "aesp.knowledge.upsert"
+    },
+    {
+      "type": "aesp.runtime.completed"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "id": "agent.reviewer",
+  "name": "Reviewer",
+  "description": "reviews code",
+  "capabilities": ["coding"]
+}

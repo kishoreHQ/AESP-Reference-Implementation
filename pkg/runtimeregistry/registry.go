@@ -109,6 +109,6 @@ func SpecMapping() types.SpecMapping {
 		Module:     "pkg/runtimeregistry",
 		AESPSpecs:  []string{"AESP-0001", "AESP-0005", "AESP-0015"},
 		Invariants: []string{"INV-01", "INV-02", "INV-09"},
-		Status:     "stubbed",
+		Status:     "implemented",
 	}
 }

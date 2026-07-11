@@ -91,6 +91,6 @@ func SpecMapping() types.SpecMapping {
 		Module:     "pkg/eventbus",
 		AESPSpecs:  []string{"AESP-0011", "AESP-0003"},
 		Invariants: []string{"INV-10"},
-		Status:     "stubbed",
+		Status:     "implemented",
 	}
 }

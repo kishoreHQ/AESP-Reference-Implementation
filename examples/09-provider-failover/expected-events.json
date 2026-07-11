@@ -1,0 +1,18 @@
+{
+  "events": [
+    {
+      "type": "aesp.control.mission.accepted"
+    },
+    {
+      "type": "aesp.provider.health.failed",
+      "providerId": "provider.mock-remote"
+    },
+    {
+      "type": "aesp.control.route.selected",
+      "providerId": "provider.mock-local"
+    },
+    {
+      "type": "aesp.runtime.completed"
+    }
+  ]
+}

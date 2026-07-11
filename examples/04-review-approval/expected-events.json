@@ -1,0 +1,19 @@
+{
+  "events": [
+    {
+      "type": "aesp.control.mission.accepted"
+    },
+    {
+      "type": "aesp.control.route.selected"
+    },
+    {
+      "type": "aesp.hitl.approval.requested"
+    },
+    {
+      "type": "aesp.hitl.approval.resolved"
+    },
+    {
+      "type": "aesp.runtime.completed"
+    }
+  ]
+}

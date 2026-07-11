@@ -62,6 +62,6 @@ func SpecMapping() types.SpecMapping {
 		Module:     "pkg/credentials",
 		AESPSpecs:  []string{"AESP-0013", "AESP-0015"},
 		Invariants: []string{"INV-07"},
-		Status:     "stubbed",
+		Status:     "implemented",
 	}
 }

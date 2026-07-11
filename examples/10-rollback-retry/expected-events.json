@@ -1,0 +1,19 @@
+{
+  "events": [
+    {
+      "type": "aesp.control.mission.accepted"
+    },
+    {
+      "type": "aesp.runtime.step.failed"
+    },
+    {
+      "type": "aesp.runtime.step.retry"
+    },
+    {
+      "type": "aesp.runtime.rollback"
+    },
+    {
+      "type": "aesp.runtime.completed"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+apiVersion: aesp.mission/v1
+kind: Mission
+metadata:
+  id: example.05-memory-update
+  profilePortable: true
+spec:
+  goal: "Memory-update workflow"
+  requiredCapabilities:
+    - reasoning
+    - tools
+  successCriteria:
+    - example-complete
+  budget:
+    maxSteps: 20
+    maxTokens: 50000
+    maxWallSec: 600
+  constraints:
+    - capability-routing-only
+    - no-vendor-model-names

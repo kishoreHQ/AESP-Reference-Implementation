@@ -61,3 +61,23 @@ Per master execution prompt §8. Append-only.
 - **Task:** P1/P2/P3 guides, migration ADR path, GATE-5
 - **Produced:** docs/deployment/*, GATE-5 PASS
 - **Satisfies:** INV-11; validation matrix; stop condition for this increment
+
+## 2026-07-11T08:00Z — FULL-FUNCTIONAL-OS
+
+- **Task:** Make Agent OS fully functional against AESP + master prompt residuals
+- **Produced:**
+  - pkg/agentos full loop (plan→route→provider→runtime→tools→verify→persist→deploy)
+  - pkg/deploy, remediation, docgen (closed GAP-003)
+  - pkg/mcp + pkg/a2a + conformance fixtures (closed GAP-001/002)
+  - pkg/httpapi Host Interface; mission YAML loader; builtin tools
+  - Provider health + failover routing; CLI run/run-all/serve/demo
+  - All 10 examples succeed; conformance 28/28 implemented
+- **Satisfies:** AESP-0001–0015 functional paths; INV-01…INV-11
+- **Uncertain:** Real wire-protocol MCP/A2A over network (in-process goldens first); real cloud provider plugins remain out-of-kernel
+- **Different next time:** Add SQLite memory backend earlier for P2 persistence demos
+
+## 2026-07-11T08:30Z — GAPS-CLOSED
+
+- GAP-001 MCP golden fixtures: CLOSED (implemented)
+- GAP-002 A2A golden fixtures: CLOSED (implemented)
+- GAP-003 DEP/REM/DOC modules: CLOSED (implemented)

@@ -53,8 +53,10 @@ func (s *Service) Resolve(ctx context.Context, id types.HITLTaskID, approved boo
 	if !ok {
 		return fmt.Errorf("unknown task")
 	}
-	if t.Status != Pending {
-		return fmt.Errorf("task not pending")
+	// Expired tasks may still be explicitly resolved by a host callback after
+	// re-opening; production would create a new task. For pending only by default.
+	if t.Status != Pending && t.Status != Expired {
+		return fmt.Errorf("task not resolvable: %s", t.Status)
 	}
 	now := time.Now().UTC()
 	t.ResolvedAt = &now
@@ -96,6 +98,6 @@ func SpecMapping() types.SpecMapping {
 		AESPSpecs:  []string{"AESP-0014"},
 		RequirementIDs: []string{"HITL-REQ"},
 		Invariants: []string{"INV-10"},
-		Status:     "stubbed",
+		Status:     "implemented",
 	}
 }

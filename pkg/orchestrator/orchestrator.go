@@ -55,6 +55,6 @@ func SpecMapping() types.SpecMapping {
 		Module:     "pkg/orchestrator",
 		AESPSpecs:  []string{"AESP-0005", "AESP-0001", "AESP-0015"},
 		Invariants: []string{"INV-03", "INV-05", "INV-01"},
-		Status:     "stubbed",
+		Status:     "implemented",
 	}
 }

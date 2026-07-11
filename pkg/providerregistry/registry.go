@@ -17,10 +17,11 @@ type Provider interface {
 }
 
 type Descriptor struct {
-	ID           types.PluginID      `json:"id"`
-	Capabilities []types.Capability  `json:"capabilities"`
-	Models       []ModelInfo         `json:"models"`
-	Local        bool                `json:"local"`
+	ID           types.PluginID     `json:"id"`
+	Capabilities []types.Capability `json:"capabilities"`
+	Models       []ModelInfo        `json:"models"`
+	Local        bool               `json:"local"`
+	Priority     int                `json:"priority"` // higher preferred when healthy
 }
 
 type ModelInfo struct {
@@ -29,12 +30,12 @@ type ModelInfo struct {
 }
 
 type CompletionRequest struct {
-	Model          string
-	Messages       []Message
-	Tools          []map[string]any
-	MaxTokens      int
+	Model            string
+	Messages         []Message
+	Tools            []map[string]any
+	MaxTokens        int
 	CredentialHandle string
-	Correlation    map[string]string
+	Correlation      map[string]string
 }
 
 type Message struct {
@@ -52,12 +53,16 @@ type CompletionResponse struct {
 }
 
 type Registry struct {
-	mu   sync.RWMutex
-	byID map[types.PluginID]Provider
+	mu        sync.RWMutex
+	byID      map[types.PluginID]Provider
+	unhealthy map[types.PluginID]string
 }
 
 func New() *Registry {
-	return &Registry{byID: make(map[types.PluginID]Provider)}
+	return &Registry{
+		byID:      make(map[types.PluginID]Provider),
+		unhealthy: make(map[types.PluginID]string),
+	}
 }
 
 func (r *Registry) Register(p Provider) error {
@@ -88,17 +93,60 @@ func (r *Registry) List() []Provider {
 	return out
 }
 
-// FindByCapabilities returns providers advertising all required caps (INV-03).
+func (r *Registry) MarkUnhealthy(id types.PluginID, reason string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.unhealthy[id] = reason
+}
+
+func (r *Registry) MarkHealthy(id types.PluginID) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	delete(r.unhealthy, id)
+}
+
+func (r *Registry) IsHealthy(id types.PluginID) bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	_, bad := r.unhealthy[id]
+	return !bad
+}
+
+// FindByCapabilities returns healthy providers advertising all required caps (INV-03).
+// Sorted by priority desc; unhealthy excluded unless includeUnhealthy.
 func (r *Registry) FindByCapabilities(ctx context.Context, required []types.Capability) ([]Provider, error) {
-	var out []Provider
+	type scored struct {
+		p Provider
+		pr int
+	}
+	var list []scored
 	for _, p := range r.List() {
+		if !r.IsHealthy(p.ID()) {
+			continue
+		}
+		if err := p.Health(ctx); err != nil {
+			r.MarkUnhealthy(p.ID(), err.Error())
+			continue
+		}
 		d, err := p.Describe(ctx)
 		if err != nil {
 			continue
 		}
 		if hasAll(d.Capabilities, required) {
-			out = append(out, p)
+			list = append(list, scored{p: p, pr: d.Priority})
 		}
+	}
+	// simple priority sort
+	for i := 0; i < len(list); i++ {
+		for j := i + 1; j < len(list); j++ {
+			if list[j].pr > list[i].pr {
+				list[i], list[j] = list[j], list[i]
+			}
+		}
+	}
+	out := make([]Provider, len(list))
+	for i, s := range list {
+		out[i] = s.p
 	}
 	return out, nil
 }
@@ -121,6 +169,6 @@ func SpecMapping() types.SpecMapping {
 		Module:     "pkg/providerregistry",
 		AESPSpecs:  []string{"AESP-0015"},
 		Invariants: []string{"INV-01", "INV-02", "INV-03"},
-		Status:     "stubbed",
+		Status:     "implemented",
 	}
 }

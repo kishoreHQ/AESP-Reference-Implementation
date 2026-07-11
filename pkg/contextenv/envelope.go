@@ -83,6 +83,6 @@ func SpecMapping() types.SpecMapping {
 		Module:     "pkg/contextenv",
 		AESPSpecs:  []string{"AESP-0004", "AESP-0006", "AESP-0013", "AESP-0015"},
 		Invariants: []string{"INV-05"},
-		Status:     "stubbed",
+		Status:     "implemented",
 	}
 }

@@ -1,0 +1,18 @@
+apiVersion: aesp.mission/v1
+kind: Mission
+metadata:
+  id: example.06-kg-update
+  profilePortable: true
+spec:
+  goal: "KG-update workflow"
+  requiredCapabilities:
+    - reasoning
+  successCriteria:
+    - example-complete
+  budget:
+    maxSteps: 20
+    maxTokens: 50000
+    maxWallSec: 600
+  constraints:
+    - capability-routing-only
+    - no-vendor-model-names

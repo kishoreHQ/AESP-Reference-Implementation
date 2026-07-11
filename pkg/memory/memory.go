@@ -85,6 +85,6 @@ func SpecMapping() types.SpecMapping {
 		Module:     "pkg/memory",
 		AESPSpecs:  []string{"AESP-0004", "AESP-0013"},
 		Invariants: []string{"INV-04"},
-		Status:     "stubbed",
+		Status:     "implemented",
 	}
 }

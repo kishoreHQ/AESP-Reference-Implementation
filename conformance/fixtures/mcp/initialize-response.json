@@ -1,0 +1,5 @@
+{
+  "protocolVersion": "2024-11-05",
+  "serverInfo": { "name": "aesp-ref-mcp", "version": "1.0.0" },
+  "capabilities": { "tools": {} }
+}

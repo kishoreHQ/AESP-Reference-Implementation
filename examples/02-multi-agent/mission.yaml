@@ -1,0 +1,20 @@
+apiVersion: aesp.mission/v1
+kind: Mission
+metadata:
+  id: example.02-multi-agent
+  profilePortable: true
+spec:
+  goal: "Multi-agent workflow"
+  requiredCapabilities:
+    - coding
+    - tools
+    - planning
+  successCriteria:
+    - example-complete
+  budget:
+    maxSteps: 20
+    maxTokens: 50000
+    maxWallSec: 600
+  constraints:
+    - capability-routing-only
+    - no-vendor-model-names

@@ -1,0 +1,9 @@
+{
+  "tools": [
+    {
+      "name": "echo",
+      "description": "Echo a message",
+      "inputSchema": { "type": "object", "properties": { "msg": { "type": "string" } } }
+    }
+  ]
+}

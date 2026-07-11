@@ -1,0 +1,19 @@
+apiVersion: aesp.mission/v1
+kind: Mission
+metadata:
+  id: example.07-remediation
+  profilePortable: true
+spec:
+  goal: "Remediation workflow"
+  requiredCapabilities:
+    - tools
+    - reasoning
+  successCriteria:
+    - example-complete
+  budget:
+    maxSteps: 20
+    maxTokens: 50000
+    maxWallSec: 600
+  constraints:
+    - capability-routing-only
+    - no-vendor-model-names

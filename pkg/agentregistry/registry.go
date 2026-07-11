@@ -46,6 +46,6 @@ func SpecMapping() types.SpecMapping {
 		Module:     "pkg/agentregistry",
 		AESPSpecs:  []string{"AESP-0001", "AESP-0002"},
 		Invariants: []string{"INV-02"},
-		Status:     "stubbed",
+		Status:     "implemented",
 	}
 }

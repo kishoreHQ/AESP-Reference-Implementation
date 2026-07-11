@@ -1,0 +1,17 @@
+{
+  "events": [
+    {
+      "type": "aesp.control.mission.accepted"
+    },
+    {
+      "type": "aesp.control.route.selected"
+    },
+    {
+      "type": "aesp.memory.write",
+      "trust": "agent"
+    },
+    {
+      "type": "aesp.runtime.completed"
+    }
+  ]
+}

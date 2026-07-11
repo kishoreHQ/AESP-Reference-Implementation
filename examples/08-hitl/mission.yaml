@@ -1,0 +1,18 @@
+apiVersion: aesp.mission/v1
+kind: Mission
+metadata:
+  id: example.08-hitl
+  profilePortable: true
+spec:
+  goal: "HITL workflow"
+  requiredCapabilities:
+    - tools
+  successCriteria:
+    - example-complete
+  budget:
+    maxSteps: 20
+    maxTokens: 50000
+    maxWallSec: 600
+  constraints:
+    - capability-routing-only
+    - no-vendor-model-names

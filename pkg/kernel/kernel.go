@@ -5,18 +5,22 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/artifact"
 	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/eventbus"
 	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/host"
+	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/replay"
 	"github.com/kishoreHQ/AESP-Reference-Implementation/pkg/types"
 )
 
 // Kernel is the host-neutral Agent OS core.
 // Zero vendor names. Zero host product names.
 type Kernel struct {
-	mu     sync.Mutex
-	bus    eventbus.Bus
+	mu       sync.Mutex
+	bus      eventbus.Bus
 	missions map[types.WorkUnitID]*types.Mission
-	trees  map[types.WorkUnitID]*host.ExecutionTree
+	trees    map[types.WorkUnitID]*host.ExecutionTree
+	arts     *artifact.Store
+	journal  *replay.Journal
 }
 
 // New constructs a kernel with an in-memory event bus.
@@ -30,6 +34,9 @@ func New(bus eventbus.Bus) *Kernel {
 		trees:    make(map[types.WorkUnitID]*host.ExecutionTree),
 	}
 }
+
+func (k *Kernel) SetArtifactStore(s *artifact.Store) { k.arts = s }
+func (k *Kernel) SetJournal(j *replay.Journal)       { k.journal = j }
 
 func (k *Kernel) SubmitMission(ctx context.Context, m types.Mission) (types.WorkUnitID, error) {
 	if m.ID == "" {
@@ -69,7 +76,7 @@ func (k *Kernel) SubscribeEvents(ctx context.Context, id types.WorkUnitID) (<-ch
 	if err != nil {
 		return nil, err
 	}
-	out := make(chan host.Event, 16)
+	out := make(chan host.Event, 64)
 	go func() {
 		defer close(out)
 		for {
@@ -95,7 +102,11 @@ func (k *Kernel) ResolveApproval(ctx context.Context, taskID types.HITLTaskID, d
 }
 
 func (k *Kernel) GetArtifact(ctx context.Context, digest types.ArtifactDigest) ([]byte, error) {
-	return nil, fmt.Errorf("artifact store stub: %s", digest)
+	if k.arts == nil {
+		return nil, fmt.Errorf("artifact store not configured")
+	}
+	b, _, err := k.arts.Get(ctx, digest)
+	return b, err
 }
 
 func (k *Kernel) GetExecutionTree(ctx context.Context, id types.WorkUnitID) (*host.ExecutionTree, error) {
@@ -106,19 +117,42 @@ func (k *Kernel) GetExecutionTree(ctx context.Context, id types.WorkUnitID) (*ho
 		return nil, fmt.Errorf("unknown mission %s", id)
 	}
 	cp := *t
+	cp.Artifacts = append([]types.ArtifactDigest{}, t.Artifacts...)
+	cp.Agents = append([]string{}, t.Agents...)
+	cp.Failures = append([]string{}, t.Failures...)
+	cp.Timeline = append([]host.Event{}, t.Timeline...)
 	return &cp, nil
 }
 
+// UpdateTree mutates the execution tree (INV-10).
+func (k *Kernel) UpdateTree(id types.WorkUnitID, fn func(*host.ExecutionTree)) {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	t, ok := k.trees[id]
+	if !ok {
+		return
+	}
+	fn(t)
+}
+
 func (k *Kernel) Health(ctx context.Context) error { return nil }
+
+// GetMission returns a submitted mission.
+func (k *Kernel) GetMission(id types.WorkUnitID) (*types.Mission, bool) {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	m, ok := k.missions[id]
+	return m, ok
+}
 
 // Ensure Kernel implements host.Interface.
 var _ host.Interface = (*Kernel)(nil)
 
 func SpecMapping() types.SpecMapping {
 	return types.SpecMapping{
-		Module:    "pkg/kernel",
-		AESPSpecs: []string{"AESP-0001", "AESP-0003", "AESP-0005", "AESP-0013", "AESP-0015"},
+		Module:     "pkg/kernel",
+		AESPSpecs:  []string{"AESP-0001", "AESP-0003", "AESP-0005", "AESP-0013", "AESP-0015"},
 		Invariants: []string{"INV-02", "INV-08", "INV-10", "INV-11"},
-		Status:    "stubbed",
+		Status:     "implemented",
 	}
 }
