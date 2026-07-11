@@ -302,3 +302,31 @@ docs-memory: ## Open memory model doc path
 	@echo docs/hardening/memory-trust-rules.md
 	@echo docs/architecture/session-lifecycle.md
 	@echo docs/architecture/context-envelope.md
+
+# ─── Monorepo (kernel + UI) ─────────────────────────────────────────────
+
+.PHONY: dev dev-ui dev-ui-mocks install-ui build-ui monorepo-help
+
+dev: ## Start kernel + Mission Control UI (./scripts/dev.sh)
+	bash scripts/dev.sh
+
+dev-ui: ## UI only (live API proxy; start kernel separately)
+	npm --prefix ui run dev -- --host 127.0.0.1 --port 5173
+
+dev-ui-mocks: ## UI only with MSW mocks
+	bash scripts/dev-ui-only.sh
+
+install-ui: ## npm install in ui/
+	npm --prefix ui install
+
+build-ui: ## Production build of Mission Control UI
+	npm --prefix ui run build
+
+monorepo-help: ## Show monorepo layout
+	@echo "AESP Agent OS monorepo"
+	@echo "  cmd/aespd, pkg/     → kernel"
+	@echo "  ui/                 → Mission Control UI"
+	@echo "  examples/           → portable missions"
+	@echo "  make dev            → kernel + UI"
+	@echo "  make demo           → kernel CLI demo"
+	@echo "  Spec: https://github.com/kishoreHQ/AESP"

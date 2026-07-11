@@ -1,0 +1,12 @@
+{
+  "artifacts": [
+    {
+      "name": "plan",
+      "kind": "plan-artifact"
+    },
+    {
+      "name": "result",
+      "kind": "mission-result"
+    }
+  ]
+}

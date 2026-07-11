@@ -1,0 +1,243 @@
+@import "./shared/tokens.css";
+@import "tailwindcss";
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-0);
+  background-image: var(--surface-grid);
+  background-attachment: fixed;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.page {
+  max-width: 80rem;
+  margin-inline: auto;
+  padding: 1.25rem 1.5rem 2.5rem;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 1rem 1rem 5.5rem;
+  }
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--ink-0);
+}
+
+.page-sub {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--ink-1);
+}
+
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.input {
+  min-height: 2.5rem;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  color: var(--ink-0);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  transition:
+    border-color var(--motion),
+    box-shadow var(--motion);
+}
+.input::placeholder {
+  color: var(--ink-2);
+}
+.input:hover {
+  border-color: var(--line-strong);
+}
+.input:focus {
+  outline: none;
+  border-color: rgba(var(--rgb-cyan), 0.55);
+  box-shadow: 0 0 0 3px rgba(var(--rgb-cyan), 0.12);
+}
+
+/* KPI stat tiles — multi-color like Control Hub */
+.kpi-tile {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--line);
+  background: linear-gradient(160deg, rgba(18, 31, 45, 0.95), rgba(12, 21, 32, 0.98));
+  padding: 1rem 1.1rem;
+  transition:
+    border-color var(--motion),
+    box-shadow var(--motion),
+    transform var(--motion);
+}
+.kpi-tile:hover {
+  transform: translateY(-1px);
+}
+.kpi-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background: radial-gradient(ellipse at top left, currentColor, transparent 60%);
+  pointer-events: none;
+}
+.kpi-label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  margin-bottom: 0.35rem;
+}
+.kpi-value {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.kpi-meta {
+  margin-top: 0.35rem;
+  font-size: 0.6875rem;
+  color: var(--ink-1);
+}
+
+.kpi-green {
+  color: var(--neon-green);
+  border-color: rgba(var(--rgb-green), 0.25);
+}
+.kpi-green:hover {
+  box-shadow: 0 0 24px rgba(var(--rgb-green), 0.12);
+}
+.kpi-orange {
+  color: var(--neon-orange);
+  border-color: rgba(var(--rgb-orange), 0.25);
+}
+.kpi-orange:hover {
+  box-shadow: 0 0 24px rgba(var(--rgb-orange), 0.12);
+}
+.kpi-purple {
+  color: var(--neon-purple);
+  border-color: rgba(var(--rgb-purple), 0.28);
+}
+.kpi-purple:hover {
+  box-shadow: 0 0 24px rgba(var(--rgb-purple), 0.14);
+}
+.kpi-pink {
+  color: var(--neon-pink);
+  border-color: rgba(var(--rgb-pink), 0.28);
+}
+.kpi-pink:hover {
+  box-shadow: 0 0 24px rgba(var(--rgb-pink), 0.14);
+}
+.kpi-cyan {
+  color: var(--cyan-100);
+  border-color: rgba(var(--rgb-cyan), 0.3);
+}
+.kpi-cyan:hover {
+  box-shadow: 0 0 24px rgba(var(--rgb-cyan), 0.15);
+}
+.kpi-yellow {
+  color: var(--neon-yellow);
+  border-color: rgba(250, 204, 21, 0.28);
+}
+
+/* Health bars */
+.meter {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg-3);
+  overflow: hidden;
+}
+.meter > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--cyan-400), var(--cyan-100));
+  box-shadow: 0 0 8px rgba(var(--rgb-cyan), 0.45);
+}
+
+/* Dispatch chips */
+.dispatch-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(12, 21, 32, 0.8);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ink-0);
+  transition:
+    border-color var(--motion),
+    background var(--motion),
+    box-shadow var(--motion);
+  cursor: pointer;
+}
+.dispatch-chip:hover {
+  border-color: rgba(var(--rgb-cyan), 0.4);
+  background: rgba(var(--rgb-cyan), 0.08);
+  box-shadow: 0 0 16px rgba(var(--rgb-cyan), 0.1);
+}
+
+/* Top online pill */
+.online-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--rgb-green), 0.3);
+  background: rgba(var(--rgb-green), 0.08);
+  padding: 0.25rem 0.65rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--neon-green);
+  text-transform: uppercase;
+}
+
+.card-state-running {
+  border-left: 3px solid var(--cyan-200);
+  box-shadow: inset 3px 0 12px -6px rgba(var(--rgb-cyan), 0.4);
+}
+.card-state-awaiting_approval {
+  border-left: 3px solid var(--warn);
+  background: linear-gradient(90deg, var(--warn-dim), transparent 50%);
+}
+.card-state-queued {
+  border-left: 3px solid var(--ink-2);
+}
+.card-state-succeeded {
+  border-left: 3px solid var(--ok);
+}
+.card-state-failed {
+  border-left: 3px solid var(--fail);
+}
+.card-state-cancelled {
+  border-left: 3px solid var(--ink-2);
+}

@@ -3,3 +3,16 @@
 .aesp-workspace/
 bin/
 coverage/
+
+# Monorepo UI
+ui/node_modules/
+ui/dist/
+ui/.env
+ui/.env.local
+
+# Local runtime
+.aesp-workspace/
+.aesp-workspace-verify/
+bin/
+coverage/
+*.bak

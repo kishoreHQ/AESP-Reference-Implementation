@@ -1,0 +1,18 @@
+{
+  "name": "aesp-agent-os",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Hermes / AESP Agent OS monorepo — kernel, UI, examples",
+  "scripts": {
+    "dev": "bash scripts/dev.sh",
+    "dev:ui": "npm --prefix ui run dev -- --host 127.0.0.1 --port 5173",
+    "dev:ui:mocks": "VITE_USE_MOCKS=1 npm --prefix ui run dev -- --host 127.0.0.1 --port 5173",
+    "build:ui": "npm --prefix ui run build",
+    "build:kernel": "go build -o bin/aespd ./cmd/aespd",
+    "test:kernel": "go test ./...",
+    "test:ui": "npm --prefix ui run build"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
